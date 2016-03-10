@@ -1,22 +1,27 @@
 package com.mz.concurrency.main.impl.recursive;
 
+import java.util.function.Supplier;
+
 import com.mz.concurrency.main.QuickSort;
 
 public class RecursiveQuickSort implements QuickSort {
 
 	@Override
-	public <T extends Comparable<T>> void sort(T[] comparable) {
-		doSort(comparable, 0, comparable.length);
+	public <T extends Comparable<T>> void sort(T[] comparable, Supplier postProcess) {
+		doSort(comparable, 0, comparable.length, postProcess);
 	}
 
-	private <T extends Comparable<T>> void doSort(T[] array, int startIndx,
-			int endIndx) {
+	private <T extends Comparable<T>> void doSort(T[] comparable, int startIndx,
+			int endIndx, Supplier postProcess) {
 		if (startIndx >= endIndx - 1) {
 			return;
 		}
-		int i = splitInTwoParts(array, startIndx, endIndx);
-		doSort(array, startIndx, i);
-		doSort(array, i + 1, endIndx);
+		int i = splitInTwoParts(comparable, startIndx, endIndx);
+		doSort(comparable, startIndx, i, postProcess);
+		doSort(comparable, i + 1, endIndx, postProcess);
+		if (postProcess != null){
+			postProcess.get();
+		}
 	}
 
 	private <T extends Comparable<T>> int splitInTwoParts(T[] array,
@@ -39,4 +44,5 @@ public class RecursiveQuickSort implements QuickSort {
 			array[indx2] = indx1Item;
 		}
 	}
+
 }

@@ -1,6 +1,7 @@
 package com.mz.concurrency.main.impl.forkjoin;
 
 import java.util.concurrent.RecursiveAction;
+import java.util.function.Supplier;
 
 public class QuickSortAction<T extends Comparable<T>> extends RecursiveAction {
 	private static final long serialVersionUID = 1L;
@@ -8,11 +9,13 @@ public class QuickSortAction<T extends Comparable<T>> extends RecursiveAction {
 	private T[] array;
 	private int startIndx;
 	private int endIndx;
+	private Supplier postAction;
 
-	public QuickSortAction(T[] array, int startIndx, int endIndx) {
+	public QuickSortAction(T[] array, int startIndx, int endIndx, Supplier postAction2) {
 		this.array = array;
 		this.startIndx = startIndx;
 		this.endIndx = endIndx;
+		this.postAction = postAction2;
 	}
 
 	@Override
@@ -23,16 +26,19 @@ public class QuickSortAction<T extends Comparable<T>> extends RecursiveAction {
 		int i = splitInTwoParts(array, startIndx, endIndx);
 		QuickSortAction<T> quickSortPart1 = null, quickSortPart2 = null;
 		if (i-startIndx>1){
-			quickSortPart1 = new QuickSortAction<T>(array, startIndx, i);
+			quickSortPart1 = new QuickSortAction<T>(array, startIndx, i, postAction);
 			quickSortPart1.fork();
 		}
 		if (endIndx - i-1 > 1){
-			quickSortPart2 = new QuickSortAction<T>(array, i + 1, endIndx);
+			quickSortPart2 = new QuickSortAction<T>(array, i + 1, endIndx, postAction);
 			quickSortPart2.fork();
 			quickSortPart2.join();
 		}
 		if (quickSortPart1 != null){
 			quickSortPart1.join();
+		}
+		if (postAction != null){
+			postAction.get();
 		}
 	}
 
